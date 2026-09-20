@@ -9,7 +9,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "npx serve out",
-    "test": "tsx --test tests/demo-tools.test.ts tests/demo-simulator.test.ts tests/audience-isolation.test.ts tests/task-history.test.ts tests/task-scheduler.test.ts tests/expert-catalog.test.ts tests/agent-skill-catalog.test.ts tests/acquisition-guide.test.ts tests/marketing-guide.test.ts tests/home-skill-recommendations.test.ts tests/composer-skills.test.ts tests/question-suggestions.test.ts tests/feishu-integration.test.ts && npm run build && node --test tests/rendered-html.test.mjs",
+    "test": "tsx --test tests/answer-versions.test.ts tests/demo-tools.test.ts tests/demo-simulator.test.ts tests/audience-isolation.test.ts tests/task-history.test.ts tests/task-scheduler.test.ts tests/expert-catalog.test.ts tests/agent-skill-catalog.test.ts tests/acquisition-guide.test.ts tests/marketing-guide.test.ts tests/home-skill-recommendations.test.ts tests/composer-skills.test.ts tests/question-suggestions.test.ts tests/feishu-integration.test.ts && npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern out --ignore-pattern .next"
   },
   "dependencies": {

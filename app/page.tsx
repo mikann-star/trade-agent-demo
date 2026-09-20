@@ -42,6 +42,18 @@ import {
   useSyncExternalStore,
 } from "react";
 import { ExpertSkillWorkspace } from "@/components/expert-skill-workspace";
+import { AnswerVersionPanel } from "@/components/answer-version-panel";
+import {
+  beginProgressQuery,
+  completeAnswerHistory,
+  createAnswerHistory,
+  failProgressQuery,
+  queryDemoProgress,
+  receiveProgressQuery,
+  selectAnswerVersion,
+  selectedAnswerVersion,
+  stopAnswerHistory,
+} from "@/lib/answer-versions";
 import { FeishuIntegrationDialog } from "@/components/feishu-integration-dialog";
 import type {
   AgentSkillDefinition,
@@ -146,6 +158,7 @@ type PromptRunJob = {
   taskId: string;
   prompt: string;
   assistantId: string;
+  queryMessageId: string;
   answerGroupId: string;
   plan: AudienceRunPlan;
   targetAgent?: TaskTargetAgent;
@@ -183,6 +196,7 @@ function stopTaskSnapshot(task: RecentTask): RecentTask {
         ? {
             ...message,
             pending: false,
+            answerHistory: message.answerHistory && stopAnswerHistory(message.answerHistory, "stopped"),
             content: message.content || "已停止生成。",
             trace: message.trace?.map((step) => ({
               ...step,
@@ -255,6 +269,8 @@ export default function Home() {
   const deleteTriggerRef = useRef<HTMLButtonElement | null>(null);
   const favoriteToastTimerRef = useRef<number | null>(null);
   const composerHandleRef = useRef<ComposerHandle | null>(null);
+  const progressRequestsRef = useRef(new Set<string>());
+  const queryScrollTargetRef = useRef<string | null>(null);
 
   const filteredTasks = useMemo(
     () => filterRecentTasks(recentTasks, searchQuery),
@@ -466,6 +482,7 @@ export default function Home() {
   }, [activeView, pendingComposerSkill]);
 
   useEffect(() => {
+    if (queryScrollTargetRef.current) return;
     scrollEndRef.current?.scrollIntoView({
       behavior: running ? "smooth" : "auto",
       block: "end",
@@ -568,6 +585,8 @@ export default function Home() {
           await runAudienceIsolationScenario({
             plan: job.plan,
             signal: controller.signal,
+            // Allow progress pulls and version review in the local async demo.
+            minimumThinkingMs: 16_000,
             onEvent: ({ name, data }) => {
               if (controller.signal.aborted) return;
               if (name === "run.started") {
@@ -614,6 +633,8 @@ export default function Home() {
                   content: "",
                   answeringAgent: job.targetAgent,
                   pending: true,
+                  queryMessageId: job.queryMessageId,
+                  ...(!firstAnswer ? { answerHistory: createAnswerHistory(messageId, startedAt) } : {}),
                   trace: firstAnswer ? assistantTrace : [],
                   audience:
                     data.audience === "merchant" || data.audience === "internal"
@@ -694,7 +715,7 @@ export default function Home() {
               if (!touchedMessageIds.has(message.id)) return message;
               const internalId = answerIdsBySlot.get("internal");
               const merchantId = answerIdsBySlot.get("merchant");
-              return {
+              const finished: TaskMessage = {
                 ...message,
                 pending: false,
                 elapsedMs: finalElapsedMs,
@@ -714,6 +735,14 @@ export default function Home() {
                   message.id === merchantId && internalId
                     ? internalId
                     : message.derivedFromId,
+              };
+              return {
+                ...finished,
+                answerHistory: message.answerHistory && completeAnswerHistory(message.answerHistory, {
+                  content: finished.content,
+                  trace: finished.trace ?? [],
+                  elapsedMs: finalElapsedMs,
+                }, completedAt.getTime()),
               };
             }),
           }),
@@ -740,6 +769,7 @@ export default function Home() {
                 ? {
                     ...message,
                     pending: false,
+                    answerHistory: message.answerHistory && stopAnswerHistory(message.answerHistory, stopped ? "stopped" : "failed"),
                     content:
                       message.content ||
                       (stopped
@@ -780,6 +810,57 @@ export default function Home() {
     [scheduler, updateTask],
   );
 
+  const selectReplyVersion = (messageId: string, versionId: string) => {
+    if (!activeTaskId) return;
+    // Keep the reader at this answer while inspecting its history.
+    queryScrollTargetRef.current = messageId;
+    updateTask(activeTaskId, (task) => ({
+      ...task,
+      messages: task.messages.map((message) => message.id === messageId && message.answerHistory
+        ? { ...message, answerHistory: selectAnswerVersion(message.answerHistory, versionId) } : message),
+    }));
+  };
+
+  const queryTaskProgress = async (requestedAt: number, message: TaskMessage) => {
+    const task = activeTask;
+    if (!task || !message?.answerHistory || progressRequestsRef.current.has(message.id)) return;
+    if (message.answerHistory.status !== "running") return;
+    const now = requestedAt;
+    const latestStep = message.trace?.at(-1);
+    const result = beginProgressQuery(message.answerHistory, {
+      content: message.content || (latestStep
+        ? `当前进度：${latestStep.title}\n${latestStep.detail}\n\n分析仍在进行，完整结论将在完成后自动更新。`
+        : "任务已进入队列，正在等待执行。完成后将自动更新结果。"),
+      trace: message.trace ?? [],
+      elapsedMs: now - message.answerHistory.submittedAt,
+    }, createId(), now);
+    if (!result) return;
+    progressRequestsRef.current.add(message.id);
+    queryScrollTargetRef.current = null;
+    updateTask(task.id, (current) => ({
+      ...current,
+      messages: current.messages.map((item) => item.id === message.id &&
+        item.answerHistory?.runId === result.request.runId && item.answerHistory.status === "running"
+        ? { ...item, answerHistory: result.history } : item),
+    }));
+    try {
+      const response = await queryDemoProgress(result.request);
+      updateTask(task.id, (current) => ({
+        ...current,
+        messages: current.messages.map((item) => item.id === message.id && item.answerHistory
+          ? { ...item, answerHistory: receiveProgressQuery(item.answerHistory, response, Date.now()) } : item),
+      }));
+    } catch {
+      updateTask(task.id, (current) => ({
+        ...current,
+        messages: current.messages.map((item) => item.id === message.id && item.answerHistory
+          ? { ...item, answerHistory: failProgressQuery(item.answerHistory, result.request) } : item),
+      }));
+    } finally {
+      progressRequestsRef.current.delete(message.id);
+    }
+  };
+
   const sendPrompt = useCallback(
     (rawPrompt: string, baseMessagesOverride?: TaskMessage[]) => {
       const prompt = rawPrompt.trim();
@@ -791,11 +872,12 @@ export default function Home() {
       const taskId = currentTask?.id ?? createId();
       const assistantId = createId();
       const answerGroupId = createId();
+      const submittedAt = Date.now();
       const plan = createAudienceRunPlan(prompt);
       const userMessage: TaskMessage = {
         id: createId(),
         role: "user",
-        content: prompt,
+        content: rawPrompt,
       };
       const targetAgent = selectedComposerExpert ?? currentTask?.targetAgent;
       const pendingAssistantMessage: TaskMessage = {
@@ -805,16 +887,18 @@ export default function Home() {
         answeringAgent: targetAgent,
         pending: true,
         trace: [],
+        answerHistory: createAnswerHistory(assistantId, submittedAt),
+        queryMessageId: userMessage.id,
       };
       const pendingConversation = [
         ...conversationMessages,
         userMessage,
         pendingAssistantMessage,
       ];
-      const submittedAt = Date.now();
       const controller = new AbortController();
 
       setInput("");
+      queryScrollTargetRef.current = null;
       activeTaskIdRef.current = taskId;
       activeViewRef.current = "chat";
       setActiveTaskId(taskId);
@@ -843,6 +927,7 @@ export default function Home() {
         taskId,
         prompt,
         assistantId,
+        queryMessageId: userMessage.id,
         answerGroupId,
         plan,
         targetAgent,
@@ -915,6 +1000,8 @@ export default function Home() {
         content: "",
         answeringAgent: source.answeringAgent ?? activeTask.targetAgent,
         pending: true,
+        answerHistory: createAnswerHistory(answerId, startedAt),
+        queryMessageId: userActionId,
         audience: "merchant",
         audienceIntent: "merchant",
         queryType: source.queryType,
@@ -998,6 +1085,8 @@ export default function Home() {
             content: "",
             answeringAgent: source.answeringAgent ?? activeTask.targetAgent,
             pending: true,
+            answerHistory: createAnswerHistory(answerId, startedAt),
+            queryMessageId: userActionId,
             audience: "internal",
             audienceIntent: "explicit_internal",
             queryType: source.queryType,
@@ -1032,38 +1121,30 @@ export default function Home() {
       const sourceMessage = messages[assistantIndex];
       if (sourceMessage.audience && sourceMessage.evidence?.length && activeTask) {
         const startedAt = Date.now();
+        const answerId = createId();
+        queryScrollTargetRef.current = null;
         updateTask(activeTask.id, (task) => ({
           ...task,
           status: "running",
           startedAt,
           metadata: "处理中",
-          messages: task.messages.map((message) =>
-            message.id === sourceMessage.id
-              ? {
-                  ...message,
-                  content: "",
-                  pending: true,
-                  trace: [
-                    {
-                      id: `${message.id}-regenerate-${startedAt}`,
-                      title: `重新生成${message.audience === "merchant" ? "对商" : "对内"}版本`,
-                      detail:
-                        message.audience === "merchant"
-                          ? "继续仅使用可对商信息生成"
-                          : "继续使用完整运营可见信息生成",
-                      status: "running",
-                    },
-                  ],
-                }
-              : message,
-          ),
+          messages: [...task.messages, {
+            ...sourceMessage,
+            id: answerId,
+            content: "",
+            pending: true,
+            favorited: false,
+            derivedAnswerId: undefined,
+            answerHistory: createAnswerHistory(answerId, startedAt),
+            trace: [{
+              id: `${answerId}-regenerate`,
+              title: `重新生成${sourceMessage.audience === "merchant" ? "对商" : "对内"}版本`,
+              detail: "保留上一轮回复，独立生成本轮结果。",
+              status: "running",
+            }],
+          }],
         }));
-        enqueueAudienceAnswer(
-          activeTask.id,
-          sourceMessage.id,
-          sourceMessage.audience,
-          sourceMessage.evidence,
-        );
+        enqueueAudienceAnswer(activeTask.id, answerId, sourceMessage.audience, sourceMessage.evidence);
         return;
       }
       let userIndex = assistantIndex - 1;
@@ -1072,7 +1153,7 @@ export default function Home() {
       }
       const sourcePrompt = messages[userIndex]?.content;
       if (!sourcePrompt || userIndex < 0) return;
-      sendPrompt(sourcePrompt, messages.slice(0, userIndex));
+      sendPrompt(sourcePrompt);
     },
     [
       activeTask,
@@ -1166,6 +1247,7 @@ export default function Home() {
 
   const openTask = useCallback(
     (task: RecentTask) => {
+      queryScrollTargetRef.current = null;
       activeTaskIdRef.current = task.id;
       activeViewRef.current = "chat";
       setActiveTaskId(task.id);
@@ -1741,25 +1823,41 @@ export default function Home() {
           <>
             <div aria-live="polite" className="chat-scroll">
               <div className="chat-column">
-                {messages.map((message) => (
+                {messages.map((message) => {
+                  const version = message.answerHistory ? selectedAnswerVersion(message.answerHistory) : undefined;
+                  const displayedMessage = version ? {
+                    ...message,
+                    content: version.content,
+                    trace: version.trace,
+                    elapsedMs: version.elapsedMs,
+                    pending: false,
+                  } : message;
+                  return (
                   <article
                     aria-label={
                       message.role === "assistant" ? "Agent 回复" : "用户消息"
                     }
                     className={`chat-message ${message.role}`}
                     id={`message-${message.id}`}
+                    tabIndex={-1}
                     key={message.id}
                   >
                     <div className="chat-message-content">
                       {message.role === "assistant" ? (
                         <>
+                          {message.answerHistory && (
+                            <AnswerVersionPanel
+                              history={message.answerHistory}
+                              onSelect={(id) => selectReplyVersion(message.id, id)}
+                              onQueryProgress={() => void queryTaskProgress(Date.now(), message)}
+                            />
+                          )}
                           <AssistantExecution
-                            elapsedMs={
-                              message.pending
-                                ? elapsedMs
-                                : (message.elapsedMs ?? 0)
-                            }
-                            message={message}
+                            elapsedMs={version?.elapsedMs ?? (message.pending ? elapsedMs : (message.elapsedMs ?? 0))}
+                            message={displayedMessage}
+                            isPreview={version?.kind === "preview"}
+                            forceOpen={version?.kind === "preview"}
+                            showElapsedTime={!version}
                             onDeriveMerchant={() =>
                               deriveMerchantVersion(message.id)
                             }
@@ -1767,9 +1865,9 @@ export default function Home() {
                               generateInternalFromFallback(message.id)
                             }
                           />
-                          {!message.pending ? (
+                          {!message.pending && (!version || version.kind === "final" || message.answerHistory?.status === "stopped" || message.answerHistory?.status === "failed") ? (
                             <AnswerActions
-                              content={message.content}
+                              content={displayedMessage.content}
                               disabled={running}
                               favorited={Boolean(message.favorited)}
                               onDislike={() => openFeedback(message.id)}
@@ -1790,7 +1888,8 @@ export default function Home() {
                       )}
                     </div>
                   </article>
-                ))}
+                  );
+                })}
                 <div ref={scrollEndRef} />
               </div>
             </div>
@@ -2650,12 +2749,16 @@ function formatElapsedTime(elapsedMs: number) {
 function AssistantExecution({
   elapsedMs,
   forceOpen = false,
+  isPreview = false,
+  showElapsedTime = true,
   message,
   onDeriveMerchant,
   onGenerateInternal,
 }: {
   elapsedMs: number;
   forceOpen?: boolean;
+  isPreview?: boolean;
+  showElapsedTime?: boolean;
   message: TaskMessage;
   onDeriveMerchant: () => void;
   onGenerateInternal: () => void;
@@ -2696,13 +2799,13 @@ function AssistantExecution({
           <summary aria-label="展开或折叠思考过程" className="execution-duration">
             <span aria-hidden="true" className="execution-duration-mark" />
             <span>
-              {message.answeringAgent
+              {!showElapsedTime ? "查看处理过程" : isPreview ? "截至本次查询已处理" : message.answeringAgent
                 ? message.pending
                   ? "处理中"
                   : "已完成"
                 : "已处理"}
             </span>
-            <time>{formatElapsedTime(elapsedMs)}</time>
+            {showElapsedTime && <time>{formatElapsedTime(elapsedMs)}</time>}
             <ChevronRight
               aria-hidden="true"
               className="execution-chevron"
@@ -2738,7 +2841,7 @@ function AssistantExecution({
           {message.fallback ? (
             <p className="audience-answer-footer unavailable">
               <span>{message.content}</span>
-              {!message.pending &&
+              {!isPreview && !message.pending &&
               message.fallback === "merchant_unavailable_prompt" &&
               !message.derivedAnswerId ? (
                 <button onClick={onGenerateInternal} type="button">
@@ -2749,7 +2852,7 @@ function AssistantExecution({
           ) : (
             <>
               <p>{message.content}</p>
-              {!message.pending && message.audience === "internal" ? (
+              {!isPreview && !message.pending && message.audience === "internal" ? (
                 <p className="audience-answer-footer internal">
                   <span>
                     以上信息仅供公司内部参考，请勿直接转发给商家
@@ -2765,7 +2868,7 @@ function AssistantExecution({
                   ) : null}
                 </p>
               ) : null}
-              {!message.pending && message.audience === "merchant" ? (
+              {!isPreview && !message.pending && message.audience === "merchant" ? (
                 <p className="audience-answer-footer merchant">
                   以上信息可转发商家
                 </p>

@@ -4,6 +4,7 @@ import type {
   AudienceIntent,
   QueryType,
 } from "./audience-isolation";
+import type { AnswerHistory } from "./answer-versions";
 
 export type TaskTraceStep = {
   id: string;
@@ -16,6 +17,8 @@ export type TaskMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  answerHistory?: AnswerHistory;
+  queryMessageId?: string;
   answeringAgent?: TaskTargetAgent;
   pending?: boolean;
   elapsedMs?: number;
@@ -186,7 +189,9 @@ export function getFavoriteAnswers(tasks: RecentTask[]): FavoriteAnswer[] {
       task.messages.flatMap((message, messageIndex) => {
         if (message.role !== "assistant" || !message.favorited) return [];
 
-        const precedingQuestion = task.messages
+        const precedingQuestion = task.messages.find(
+          (candidate) => candidate.id === message.queryMessageId && candidate.role === "user",
+        ) ?? task.messages
           .slice(0, messageIndex)
           .toReversed()
           .find((candidate) => candidate.role === "user");

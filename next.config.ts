@@ -8,6 +8,7 @@ const isProjectPage =
 const basePath = isProjectPage ? `/${repositoryName}` : "";
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   output: "export",
   trailingSlash: true,
   basePath,
