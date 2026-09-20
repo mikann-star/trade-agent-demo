@@ -27,6 +27,14 @@ npm test
 npx tsc --noEmit
 ```
 
-推送到 `main` 分支后，GitHub Actions 会自动构建并发布 GitHub Pages。
+## 网站与一键部署
+
+在线访问：https://mikann-star.github.io/trade-agent-demo/
+
+推送到 `main` 分支后，GitHub Actions 会自动测试、构建并发布当前版本。
+也可以进入仓库 **Actions → Deploy frontend demo to GitHub Pages → Run workflow**，选择 `main` 后一键重新部署。
+
+部署仅使用当前分支，不依赖旧版本分支。页面不展示缺失历史版本的切换入口。
+仓库 **Settings → Pages → Build and deployment → Source** 应设为 **GitHub Actions**。
 
 所有业务数据均为虚构演示数据，应用不会连接、读取或修改真实业务系统。

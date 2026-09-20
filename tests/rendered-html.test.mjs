@@ -43,7 +43,7 @@ test("ships the trading agent workspace instead of the starter preview", async (
     ]);
 
   assert.match(layout, /title: "交易 Agent｜多智能体业务工作台"/);
-  assert.match(layout, /version-switcher\.js/);
+  assert.doesNotMatch(layout, /version-switcher\.js/);
   assert.match(page, /交易业务智能工作台/);
   assert.match(page, /交易智能助手/);
   assert.match(page, /\.\/sidebar-title\.svg/);
@@ -458,26 +458,6 @@ test("ships the trading agent workspace instead of the starter preview", async (
   assert.match(css, /prefers-reduced-motion/);
   assert.match(nextConfig, /output: "export"/);
   assert.match(workflow, /actions\/deploy-pages@v4/);
-  assert.match(workflow, /codex\/交易智能助手-5ba4a51/);
-  assert.match(workflow, /codex\/交易智能助手-v2\.1/);
-  assert.match(workflow, /codex\/交易智能助手-v2\.2/);
-  assert.match(workflow, /codex\/交易智能助手-v2\.3-integrated/);
-  assert.match(workflow, /codex\/交易智能助手-v2\.4/);
-  assert.match(workflow, /codex\/交易智能助手-v2\.5/);
-  assert.match(workflow, /codex\/交易智能助手-v2\.6/);
-  assert.match(workflow, /codex\/交易智能助手-v2\.7/);
-  assert.match(workflow, /codex\/交易智能助手-v2\.8/);
-  assert.match(workflow, /codex\/交易智能助手-v2\.9/);
-  assert.match(workflow, /versions\/classic/);
-  assert.match(workflow, /versions\/audience-isolation/);
-  assert.match(workflow, /versions\/scene-agent-skill/);
-  assert.match(workflow, /versions\/integrated-expert-skills/);
-  assert.match(workflow, /versions\/expert-recommendations/);
-  assert.match(workflow, /versions\/question-suggestions/);
-  assert.match(workflow, /versions\/common-experts-skills/);
-  assert.match(workflow, /versions\/common-tools-switcher/);
-  assert.match(workflow, /versions\/skill-direct-expert-routing/);
-  assert.match(workflow, /versions\/simplified-skill-routing/);
   assert.match(versionSwitcher, /v2\.10/);
   assert.match(versionSwitcher, /场景选择与技能推荐/);
   assert.match(versionSwitcher, /v2\.9/);

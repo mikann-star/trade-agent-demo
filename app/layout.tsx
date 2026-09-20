@@ -58,7 +58,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <script src={`${basePath}/version-switcher.js?v=2.10.0`} defer />
       </body>
     </html>
   );
