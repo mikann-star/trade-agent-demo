@@ -1,0 +1,240 @@
+name: Deploy frontend demo to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Checkout classic version
+        uses: actions/checkout@v6
+        with:
+          ref: codex/交易智能助手-5ba4a51
+          path: .version-build/classic
+
+      - name: Checkout audience isolation version
+        uses: actions/checkout@v6
+        with:
+          ref: codex/交易智能助手-v2.1
+          path: .version-build/audience-isolation
+
+      - name: Checkout scene agent skill version
+        uses: actions/checkout@v6
+        with:
+          ref: codex/交易智能助手-v2.2
+          path: .version-build/scene-agent-skill
+
+      - name: Checkout integrated expert skill version
+        uses: actions/checkout@v6
+        with:
+          ref: codex/交易智能助手-v2.3-integrated
+          path: .version-build/integrated-expert-skills
+
+      - name: Checkout expert recommendation version
+        uses: actions/checkout@v6
+        with:
+          ref: codex/交易智能助手-v2.4
+          path: .version-build/expert-recommendations
+
+      - name: Checkout question suggestions version
+        uses: actions/checkout@v6
+        with:
+          ref: codex/交易智能助手-v2.5
+          path: .version-build/question-suggestions
+
+      - name: Checkout common experts and skills version
+        uses: actions/checkout@v6
+        with:
+          ref: codex/交易智能助手-v2.6
+          path: .version-build/common-experts-skills
+
+      - name: Checkout common tools switcher version
+        uses: actions/checkout@v6
+        with:
+          ref: codex/交易智能助手-v2.7
+          path: .version-build/common-tools-switcher
+
+      - name: Checkout skill direct expert routing version
+        uses: actions/checkout@v6
+        with:
+          ref: codex/交易智能助手-v2.8
+          path: .version-build/skill-direct-expert-routing
+
+      - name: Checkout simplified skill routing version
+        uses: actions/checkout@v6
+        with:
+          ref: codex/交易智能助手-v2.9
+          path: .version-build/simplified-skill-routing
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build static demo
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Build classic version snapshot
+        working-directory: .version-build/classic
+        run: |
+          npm install --no-audit --no-fund
+          node -e 'const fs=require("fs");const p="next.config.ts";const s=fs.readFileSync(p,"utf8");fs.writeFileSync(p,s.replace("const basePath = isProjectPage ? `/${repositoryName}` : \"\";", "const basePath = process.env.VERSION_BASE_PATH ?? (isProjectPage ? `/${repositoryName}` : \"\");"));'
+          VERSION_BASE_PATH="/${GITHUB_REPOSITORY#*/}/versions/classic" npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Build audience isolation version snapshot
+        working-directory: .version-build/audience-isolation
+        run: |
+          npm install --no-audit --no-fund
+          node -e 'const fs=require("fs");const p="next.config.ts";const s=fs.readFileSync(p,"utf8");fs.writeFileSync(p,s.replace("const basePath = isProjectPage ? `/${repositoryName}` : \"\";", "const basePath = process.env.VERSION_BASE_PATH ?? (isProjectPage ? `/${repositoryName}` : \"\");"));'
+          VERSION_BASE_PATH="/${GITHUB_REPOSITORY#*/}/versions/audience-isolation" npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Build scene agent skill version snapshot
+        working-directory: .version-build/scene-agent-skill
+        run: |
+          npm install --no-audit --no-fund
+          node -e 'const fs=require("fs");const p="next.config.ts";const s=fs.readFileSync(p,"utf8");fs.writeFileSync(p,s.replace("const basePath = isProjectPage ? `/${repositoryName}` : \"\";", "const basePath = process.env.VERSION_BASE_PATH ?? (isProjectPage ? `/${repositoryName}` : \"\");"));'
+          VERSION_BASE_PATH="/${GITHUB_REPOSITORY#*/}/versions/scene-agent-skill" npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Build integrated expert skill version snapshot
+        working-directory: .version-build/integrated-expert-skills
+        run: |
+          npm install --no-audit --no-fund
+          node -e 'const fs=require("fs");const p="next.config.ts";const s=fs.readFileSync(p,"utf8");fs.writeFileSync(p,s.replace("const basePath = isProjectPage ? `/${repositoryName}` : \"\";", "const basePath = process.env.VERSION_BASE_PATH ?? (isProjectPage ? `/${repositoryName}` : \"\");"));'
+          VERSION_BASE_PATH="/${GITHUB_REPOSITORY#*/}/versions/integrated-expert-skills" npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Build expert recommendation version snapshot
+        working-directory: .version-build/expert-recommendations
+        run: |
+          npm install --no-audit --no-fund
+          node -e 'const fs=require("fs");const p="next.config.ts";const s=fs.readFileSync(p,"utf8");fs.writeFileSync(p,s.replace("const basePath = isProjectPage ? `/${repositoryName}` : \"\";", "const basePath = process.env.VERSION_BASE_PATH ?? (isProjectPage ? `/${repositoryName}` : \"\");"));'
+          VERSION_BASE_PATH="/${GITHUB_REPOSITORY#*/}/versions/expert-recommendations" npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Build question suggestions version snapshot
+        working-directory: .version-build/question-suggestions
+        run: |
+          npm install --no-audit --no-fund
+          node -e 'const fs=require("fs");const p="next.config.ts";const s=fs.readFileSync(p,"utf8");fs.writeFileSync(p,s.replace("const basePath = isProjectPage ? `/${repositoryName}` : \"\";", "const basePath = process.env.VERSION_BASE_PATH ?? (isProjectPage ? `/${repositoryName}` : \"\");"));'
+          VERSION_BASE_PATH="/${GITHUB_REPOSITORY#*/}/versions/question-suggestions" npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Build common experts and skills version snapshot
+        working-directory: .version-build/common-experts-skills
+        run: |
+          npm install --no-audit --no-fund
+          node -e 'const fs=require("fs");const p="next.config.ts";const s=fs.readFileSync(p,"utf8");fs.writeFileSync(p,s.replace("const basePath = isProjectPage ? `/${repositoryName}` : \"\";", "const basePath = process.env.VERSION_BASE_PATH ?? (isProjectPage ? `/${repositoryName}` : \"\");"));'
+          VERSION_BASE_PATH="/${GITHUB_REPOSITORY#*/}/versions/common-experts-skills" npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Build common tools switcher version snapshot
+        working-directory: .version-build/common-tools-switcher
+        run: |
+          npm install --no-audit --no-fund
+          node -e 'const fs=require("fs");const p="next.config.ts";const s=fs.readFileSync(p,"utf8");fs.writeFileSync(p,s.replace("const basePath = isProjectPage ? `/${repositoryName}` : \"\";", "const basePath = process.env.VERSION_BASE_PATH ?? (isProjectPage ? `/${repositoryName}` : \"\");"));'
+          VERSION_BASE_PATH="/${GITHUB_REPOSITORY#*/}/versions/common-tools-switcher" npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Build skill direct expert routing version snapshot
+        working-directory: .version-build/skill-direct-expert-routing
+        run: |
+          npm install --no-audit --no-fund
+          node -e 'const fs=require("fs");const p="next.config.ts";const s=fs.readFileSync(p,"utf8");fs.writeFileSync(p,s.replace("const basePath = isProjectPage ? `/${repositoryName}` : \"\";", "const basePath = process.env.VERSION_BASE_PATH ?? (isProjectPage ? `/${repositoryName}` : \"\");"));'
+          VERSION_BASE_PATH="/${GITHUB_REPOSITORY#*/}/versions/skill-direct-expert-routing" npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Build simplified skill routing version snapshot
+        working-directory: .version-build/simplified-skill-routing
+        run: |
+          npm install --no-audit --no-fund
+          node -e 'const fs=require("fs");const p="next.config.ts";const s=fs.readFileSync(p,"utf8");fs.writeFileSync(p,s.replace("const basePath = isProjectPage ? `/${repositoryName}` : \"\";", "const basePath = process.env.VERSION_BASE_PATH ?? (isProjectPage ? `/${repositoryName}` : \"\");"));'
+          VERSION_BASE_PATH="/${GITHUB_REPOSITORY#*/}/versions/simplified-skill-routing" npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Assemble versioned site
+        run: |
+          mkdir -p out/versions/classic
+          cp -R .version-build/classic/out/. out/versions/classic/
+          node scripts/inject-version-switcher.mjs out/versions/classic "/${GITHUB_REPOSITORY#*/}/versions/classic/version-switcher.js"
+          mkdir -p out/versions/audience-isolation
+          cp -R .version-build/audience-isolation/out/. out/versions/audience-isolation/
+          node scripts/inject-version-switcher.mjs out/versions/audience-isolation "/${GITHUB_REPOSITORY#*/}/versions/audience-isolation/version-switcher.js"
+          mkdir -p out/versions/scene-agent-skill
+          cp -R .version-build/scene-agent-skill/out/. out/versions/scene-agent-skill/
+          node scripts/inject-version-switcher.mjs out/versions/scene-agent-skill "/${GITHUB_REPOSITORY#*/}/versions/scene-agent-skill/version-switcher.js"
+          mkdir -p out/versions/integrated-expert-skills
+          cp -R .version-build/integrated-expert-skills/out/. out/versions/integrated-expert-skills/
+          node scripts/inject-version-switcher.mjs out/versions/integrated-expert-skills "/${GITHUB_REPOSITORY#*/}/versions/integrated-expert-skills/version-switcher.js"
+          mkdir -p out/versions/expert-recommendations
+          cp -R .version-build/expert-recommendations/out/. out/versions/expert-recommendations/
+          node scripts/inject-version-switcher.mjs out/versions/expert-recommendations "/${GITHUB_REPOSITORY#*/}/versions/expert-recommendations/version-switcher.js"
+          mkdir -p out/versions/question-suggestions
+          cp -R .version-build/question-suggestions/out/. out/versions/question-suggestions/
+          node scripts/inject-version-switcher.mjs out/versions/question-suggestions "/${GITHUB_REPOSITORY#*/}/versions/question-suggestions/version-switcher.js"
+          mkdir -p out/versions/common-experts-skills
+          cp -R .version-build/common-experts-skills/out/. out/versions/common-experts-skills/
+          node scripts/inject-version-switcher.mjs out/versions/common-experts-skills "/${GITHUB_REPOSITORY#*/}/versions/common-experts-skills/version-switcher.js"
+          mkdir -p out/versions/common-tools-switcher
+          cp -R .version-build/common-tools-switcher/out/. out/versions/common-tools-switcher/
+          node scripts/inject-version-switcher.mjs out/versions/common-tools-switcher "/${GITHUB_REPOSITORY#*/}/versions/common-tools-switcher/version-switcher.js"
+          mkdir -p out/versions/skill-direct-expert-routing
+          cp -R .version-build/skill-direct-expert-routing/out/. out/versions/skill-direct-expert-routing/
+          node scripts/inject-version-switcher.mjs out/versions/skill-direct-expert-routing "/${GITHUB_REPOSITORY#*/}/versions/skill-direct-expert-routing/version-switcher.js"
+          mkdir -p out/versions/simplified-skill-routing
+          cp -R .version-build/simplified-skill-routing/out/. out/versions/simplified-skill-routing/
+          node scripts/inject-version-switcher.mjs out/versions/simplified-skill-routing "/${GITHUB_REPOSITORY#*/}/versions/simplified-skill-routing/version-switcher.js"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: out
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

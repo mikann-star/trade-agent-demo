@@ -1,0 +1,617 @@
+{
+  "source": {
+    "sheet": "AGENT&SKILL介绍",
+    "range": "A1:M72",
+    "revision": 849,
+    "rawSkillMountCount": 47,
+    "excludedMissingQuestionCount": 0,
+    "visibleSkillMountCount": 47
+  },
+  "scenes": [
+    {
+      "id": "merchant",
+      "name": "商家运营",
+      "status": "available",
+      "agents": [
+        {
+          "id": "merchant-operation-agent",
+          "originalName": "商家运营专家",
+          "name": "商家运营专家",
+          "description": "处理商家运营、风控与信息查询，并查找商家联系方式和负责小二。",
+          "standardQuestion": "查询商家【商家ID】的联系渠道和内部负责小二。",
+          "skills": [
+            {
+              "id": "find-user-fallback",
+              "mountKey": "merchant-operation-agent:find-user-fallback",
+              "name": "找人",
+              "description": "通过得物各部门的找人地图找人",
+              "standardQuestion": "根据找人地图，帮我找"
+            }
+          ]
+        },
+        {
+          "id": "data-analysis-agent",
+          "originalName": "商品经营分析专家",
+          "name": "商品经营分析专家",
+          "description": "分析商品价格竞争力与单品经营表现，定位价格、销售等关键问题。",
+          "standardQuestion": "诊断 SPU=【SPUID】在【时间范围】内的经营表现和异常原因。",
+          "skills": [
+            {
+              "id": "compare-price-analysis",
+              "mountKey": "data-analysis-agent:compare-price-analysis",
+              "name": "价格力分析",
+              "description": "分析商品或品类在指定时间段的价格竞争力，并支持按条件筛选查看结果。",
+              "standardQuestion": "帮我分析 SPU=【SPUID】在【时间范围】内的价格力，看看与外网相比是否有高价问题。"
+            },
+            {
+              "id": "spu-diagnosis",
+              "mountKey": "data-analysis-agent:spu-diagnosis",
+              "name": "单品诊断",
+              "description": "对单个 SPU 的价格、GMV、订单和供给等表现进行多维诊断。",
+              "standardQuestion": "帮我诊断商品 SPU=【SPUID】在【时间范围】内 GMV 下跌的原因。"
+            }
+          ]
+        },
+        {
+          "id": "ab-analysis-agent",
+          "originalName": "AB 实验专家",
+          "name": "AB 实验专家",
+          "description": "设计 AB 实验、分析实验结果，并给出推全、继续观测或回退建议。",
+          "standardQuestion": "分析 实验ID（paramsId）=【paramsId】对应的实验结果并给出是否推全的建议。",
+          "skills": [
+            {
+              "id": "ab-analysis-assistant",
+              "mountKey": "ab-analysis-agent:ab-analysis-assistant",
+              "name": "AB 实验结果分析",
+              "description": "读取已有 AB 实验报告或平台数据，分析核心指标并给出实验结论。",
+              "standardQuestion": "帮我分析这个 AB 实验结果，实验ID（paramsId）=【paramsId】。"
+            },
+            {
+              "id": "ab-design-assistant",
+              "mountKey": "ab-analysis-agent:ab-design-assistant",
+              "name": "AB 实验设计",
+              "description": "从业务想法出发设计实验假设、指标、样本量、分流和决策标准。",
+              "standardQuestion": "我想对【业务方案】开展 AB 实验，帮我设计实验假设、指标体系、样本量、分流方案和决策标准。"
+            }
+          ]
+        },
+        {
+          "id": "deposit-agent",
+          "originalName": "寄存业务专家",
+          "name": "寄存业务专家",
+          "description": "查询寄存单据，诊断入仓准入、直发托管和库存流向等寄存问题。",
+          "standardQuestion": "分析入仓单【AP或JS入仓单号】的状态和库存流向。",
+          "skills": [
+            {
+              "id": "deposit-bill-basic-query",
+              "mountKey": "deposit-agent:deposit-bill-basic-query",
+              "name": "寄存单据查询",
+              "description": "按单号查询寄存域各类单据详情，并根据单据前缀自动匹配查询方式。",
+              "standardQuestion": "帮我查询寄存单据【PF单据号】的详情。"
+            },
+            {
+              "id": "deposit-inbound-access-analysis",
+              "mountKey": "deposit-agent:deposit-inbound-access-analysis",
+              "name": "入仓准入诊断",
+              "description": "判断指定商家和商品可入仓园区，并定位配额、库容、黑名单等阻塞原因。",
+              "standardQuestion": "帮我判断 卖家ID=【sellerId】、SPU=【SPUID】、SKU=【SKUID】能否入仓，哪些园区可以入，不能入的原因是什么？"
+            },
+            {
+              "id": "deposit-inbound-direct-delivery-analysis",
+              "mountKey": "deposit-agent:deposit-inbound-direct-delivery-analysis",
+              "name": "入仓直发托管分析",
+              "description": "分析 AP 入仓单的直发托管状态及未走直发履约的原因。",
+              "standardQuestion": "帮我分析入仓单【AP入仓单号】的直发托管情况，以及没有走直发履约的原因。"
+            },
+            {
+              "id": "deposit-inbound-flow-analysis",
+              "mountKey": "deposit-agent:deposit-inbound-flow-analysis",
+              "name": "入仓库存流向分析",
+              "description": "查询 AP/JS 入仓单完整信息，并分析库存后续流向。",
+              "standardQuestion": "帮我分析入仓单【AP或JS入仓单号】的库存流向。"
+            }
+          ]
+        },
+        {
+          "id": "trade-data-query",
+          "originalName": "交易实时查询专家",
+          "name": "交易实时查询专家",
+          "description": "查询订单、商品、物流、出价库存等交易域实时明细。",
+          "standardQuestion": "查询采购单【采购单编号】的实时明细。",
+          "skills": [
+            {
+              "id": "dewu-trade-api-invoke",
+              "mountKey": "trade-data-query:dewu-trade-api-invoke",
+              "name": "交易实时查询",
+              "description": "通过交易域实时接口查询订单、物流、支付、商品、预约单、采购单和库存等明细。",
+              "standardQuestion": "帮我查询采购单编号【采购单编号】的采购单信息。"
+            },
+            {
+              "id": "commodity_data_query_guide",
+              "mountKey": "trade-data-query:commodity_data_query_guide",
+              "name": "商品基础信息查询",
+              "description": "查询 SPU、SKU、品牌和类目等商品基础与聚合信息。",
+              "standardQuestion": "帮我查询 SPU=【SPUID】的商品基础信息，包括品牌、类目和 SKU 信息。"
+            }
+          ]
+        },
+        {
+          "id": "offline_data_query_agent",
+          "originalName": "离线数据分析专家",
+          "name": "离线数据分析专家",
+          "description": "交易、逆向、价格力、直播等数据的查询与分析。",
+          "standardQuestion": "查询【时间范围】内的订单数据并按状态汇总。",
+          "skills": [
+            {
+              "id": "galaxy-price-power-analysis",
+              "mountKey": "offline_data_query_agent:galaxy-price-power-analysis",
+              "name": "离线价格力分析",
+              "description": "分析 SKU/渠道价格力、高价天数、价差等指标。",
+              "standardQuestion": "帮我用离线数仓分析 SPU=【SPUID】在【时间范围】内的价格力，看看高价 SKU 和主要价差来源。"
+            },
+            {
+              "id": "refund-info-query",
+              "mountKey": "offline_data_query_agent:refund-info-query",
+              "name": "退货退款数据查询",
+              "description": "查询退货退款单、操作流水、退款原因、金额、拦截单和签收异常等逆向数据。",
+              "standardQuestion": "帮我查询【时间范围】内退货退款单的退款原因分布，并生成查询 SQL。"
+            },
+            {
+              "id": "galaxyMcp-trade-query-rule",
+              "mountKey": "offline_data_query_agent:galaxyMcp-trade-query-rule",
+              "name": "交易离线数据查询",
+              "description": "查询订单、商品、商家、出价库存等交易域离线数据。",
+              "standardQuestion": "帮我用 Galaxy 查询【日期范围】的订单数据，并按订单状态汇总。"
+            },
+            {
+              "id": "active-service-query",
+              "mountKey": "offline_data_query_agent:active-service-query",
+              "name": "主动服务数据查询",
+              "description": "查询主动服务规则、业务拦截、退货审核、物流异常和策略执行数据。",
+              "standardQuestion": "帮我查询【时间范围】内主动服务拦截单数据，并分析各规则的执行情况。"
+            },
+            {
+              "id": "live-danmu-analysis",
+              "mountKey": "offline_data_query_agent:live-danmu-analysis",
+              "name": "直播弹幕分析",
+              "description": "按直播场次分析弹幕内容，提炼用户反馈、热点与问题。",
+              "standardQuestion": "帮我分析直播场次 ID=【场次ID】的弹幕内容，并输出结构化分析报告。"
+            },
+            {
+              "id": "live-stream-data-report",
+              "mountKey": "offline_data_query_agent:live-stream-data-report",
+              "name": "直播场次数据报告",
+              "description": "按直播场次汇总流量、成交和商品表现，生成结构化数据报告。",
+              "standardQuestion": "帮我生成直播场次 ID=【场次ID】的流量和成交数据报告。"
+            },
+            {
+              "id": "live-stream-coupon-analysis",
+              "mountKey": "offline_data_query_agent:live-stream-coupon-analysis",
+              "name": "主播券分析",
+              "description": "分析直播场次中的主播券发放、使用与成交贡献。",
+              "standardQuestion": "帮我分析直播场次 ID=【场次ID】的主播券使用和成交贡献。"
+            },
+            {
+              "id": "live-stream-daily-report",
+              "mountKey": "offline_data_query_agent:live-stream-daily-report",
+              "name": "直播 GMV 日报",
+              "description": "生成直播每日 GMV、订单等核心指标播报。",
+              "standardQuestion": "帮我生成【日期】的直播 GMV 日报。"
+            },
+            {
+              "id": "live-anchor-conversion-report",
+              "mountKey": "offline_data_query_agent:live-anchor-conversion-report",
+              "name": "达人转化率播报",
+              "description": "汇总达人主播流量与成交数据，输出转化率表现与关键洞察。",
+              "standardQuestion": "帮我生成【时间范围】的达人转化率播报。"
+            },
+            {
+              "id": "live-incubation-detail",
+              "mountKey": "offline_data_query_agent:live-incubation-detail",
+              "name": "孵化达人明细看板",
+              "description": "查看重点孵化达人场次明细、等级和波动异常。",
+              "standardQuestion": "帮我查看【时间范围】内重点孵化达人明细和波动异常。"
+            },
+            {
+              "id": "live-incubation-overview",
+              "mountKey": "offline_data_query_agent:live-incubation-overview",
+              "name": "孵化达人大盘",
+              "description": "汇总重点孵化达人大盘 GMV、企卖品占比、转化排名和未开播情况。",
+              "standardQuestion": "帮我生成【时间范围】的孵化达人速览，查看大盘 GMV 和转化率排名。"
+            }
+          ]
+        },
+        {
+          "id": "trade-order-agent",
+          "originalName": "订单业务专家",
+          "name": "订单业务专家",
+          "description": "处理租赁、履约、国补、服务标、跨境、转赠等订单查询与诊断。",
+          "standardQuestion": "分析子订单号【租赁子订单号】的订单状态和异常原因。",
+          "skills": [
+            {
+              "id": "galaxy-adhoc",
+              "mountKey": "trade-order-agent:galaxy-adhoc",
+              "name": "临时取数",
+              "description": "将临时取数需求转为 SQL 并通过 Galaxy 查询，返回结构化结果。",
+              "standardQuestion": "帮我临时取数：查询【表名】在【分区】的前【条数】条数据。"
+            },
+            {
+              "id": "quota_diagnosis",
+              "mountKey": "trade-order-agent:quota_diagnosis",
+              "name": "用户补贴额度诊断",
+              "description": "查询指定用户的补贴额度、使用情况和明细。",
+              "standardQuestion": "查询用户 ID=【用户ID】的补贴额度。"
+            },
+            {
+              "id": "rental-conversion-analysis",
+              "mountKey": "trade-order-agent:rental-conversion-analysis",
+              "name": "租赁转化漏斗分析",
+              "description": "分析租赁业务流量漏斗、订单漏斗和创单错误，定位主要流失环节。",
+              "standardQuestion": "帮我分析【时间范围】内租赁订单转化率和转化漏斗，找出主要流失环节并生成可视化报告。"
+            },
+            {
+              "id": "violate-payment-query",
+              "mountKey": "trade-order-agent:violate-payment-query",
+              "name": "违约追缴订单查询",
+              "description": "查询违约追缴订单的新增、追缴中、追缴成功及金额情况。",
+              "standardQuestion": "/violate-payment-query 查询违约追缴订单情况。"
+            },
+            {
+              "id": "lease-return-stat",
+              "mountKey": "trade-order-agent:lease-return-stat",
+              "name": "租赁归还统计",
+              "description": "统计今日待归还、逾期未归还和已归还未揽收的租赁订单。",
+              "standardQuestion": "调用 lease-return-stat，查询【日期】待归还订单数和逾期未归还订单明细。"
+            },
+            {
+              "id": "resell-order-voucher-query",
+              "mountKey": "trade-order-agent:resell-order-voucher-query",
+              "name": "转赠订单凭证查询",
+              "description": "根据 110 子单号查询转赠类型、履约信息及买卖家凭证。",
+              "standardQuestion": "帮我查询【转赠子订单号】的转赠订单凭证和转赠类型。"
+            },
+            {
+              "id": "order-biz-analysis",
+              "mountKey": "trade-order-agent:order-biz-analysis",
+              "name": "订单业务诊断",
+              "description": "识别租赁、履约、国补、退运补贴、预约单、服务标等订单场景并执行对应诊断。",
+              "standardQuestion": "帮我分析这笔租赁业务：子订单号【租赁子订单号】，查看订单状态和异常原因。"
+            },
+            {
+              "id": "lease-bidding-seller-rank",
+              "mountKey": "trade-order-agent:lease-bidding-seller-rank",
+              "name": "租赁出价明细",
+              "description": "基于最新租赁出价数据生成多商家出价明细飞书表格。",
+              "standardQuestion": "帮我生成【日期】的租赁出价明细飞书表格，数据使用 du_all.lease_bidding。"
+            }
+          ]
+        },
+        {
+          "id": "merchant-quit-diagnosis-expert",
+          "originalName": "商家退出诊断专家",
+          "name": "商家退出诊断专家",
+          "description": "定位商家无法退出入驻的阻塞原因，快速找到待处理项。",
+          "standardQuestion": "检查商家【商家ID】无法退出入驻的阻塞原因。",
+          "skills": [
+            {
+              "id": "merchant-quit-diagnosis",
+              "mountKey": "merchant-quit-diagnosis-expert:merchant-quit-diagnosis",
+              "name": "商家退出诊断",
+              "description": "查询商家退出校验结果，定位导致无法退出入驻的阻塞项。",
+              "standardQuestion": "商家 ID=【商家ID】为什么不能退出入驻？帮我做退出校验并定位阻塞原因。"
+            },
+            {
+              "id": "dewu-trade-api-invoke",
+              "mountKey": "merchant-quit-diagnosis-expert:dewu-trade-api-invoke",
+              "name": "交易实时查询",
+              "description": "通过交易域实时接口查询订单、物流、支付、商品、预约单、采购单和库存等明细。",
+              "standardQuestion": "帮我查询采购单编号【采购单编号】的采购单信息。"
+            }
+          ]
+        },
+        {
+          "id": "refund-agent1",
+          "originalName": "逆向业务分析专家",
+          "name": "逆向业务分析专家",
+          "description": "查询退货退款、主动服务和 CPO 数据，支持逆向业务分析与取数。",
+          "standardQuestion": "查询【时间范围】内退货退款原因分布并生成 SQL。",
+          "skills": [
+            {
+              "id": "cpo-query",
+              "mountKey": "refund-agent1:cpo-query",
+              "name": "CPO 数据分析",
+              "description": "查询和拆解 CPO 数据，分析会话量、订单量及各模块趋势。",
+              "standardQuestion": "帮我分析【时间范围】内 CPO 趋势，并按业务模块拆解会话量和订单量。"
+            },
+            {
+              "id": "refund-info-query",
+              "mountKey": "refund-agent1:refund-info-query",
+              "name": "退货退款数据查询",
+              "description": "查询退货退款单、操作流水、退款原因、金额、拦截单和签收异常等逆向数据。",
+              "standardQuestion": "帮我查询【时间范围】内退货退款单的退款原因分布，并生成查询 SQL。"
+            },
+            {
+              "id": "active-service-query",
+              "mountKey": "refund-agent1:active-service-query",
+              "name": "主动服务数据查询",
+              "description": "查询主动服务规则、业务拦截、退货审核、物流异常和策略执行数据。",
+              "standardQuestion": "帮我查询【时间范围】内主动服务拦截单数据，并分析各规则的执行情况。"
+            }
+          ]
+        },
+        {
+          "id": "commodity-dress-up-agent",
+          "originalName": "女装穿搭运营专家",
+          "name": "女装穿搭运营专家",
+          "description": "完成女装穿搭项目的数据观测、供给分析、日报产出和图片链路诊断。",
+          "standardQuestion": "生成【日期】的女装穿搭日报。",
+          "skills": [
+            {
+              "id": "dress-up-guashangka",
+              "mountKey": "commodity-dress-up-agent:dress-up-guashangka",
+              "name": "穿搭图片挂品识别",
+              "description": "根据 SPU 和商品图片识别对应规格 PV ID，并区分接口失败与未识别。",
+              "standardQuestion": "帮我识别 SPU=【SPUID】、图片URL=【图片URL】对应的规格 PV ID。"
+            },
+            {
+              "id": "dress-up-spu-monitor",
+              "mountKey": "commodity-dress-up-agent:dress-up-spu-monitor",
+              "name": "穿搭图片供给监控",
+              "description": "监控女装 SPU/CSPU 图片供给，识别高商详 PV 但优质图不足的商品。",
+              "standardQuestion": "帮我查询 SPU=【SPUID】的图片供给情况。"
+            },
+            {
+              "id": "dress-up-report",
+              "mountKey": "commodity-dress-up-agent:dress-up-report",
+              "name": "女装穿搭报告与推送",
+              "description": "生成女装穿搭日报、V3 进度报告，并支持飞书文档与消息发布。",
+              "standardQuestion": "生成【日期】的女装穿搭日报并发布到飞书。"
+            },
+            {
+              "id": "dress-up-data",
+              "mountKey": "commodity-dress-up-agent:dress-up-data",
+              "name": "女装穿搭数据查询",
+              "description": "查询女装穿搭供给、覆盖、标注、场域差异等 ODPS 数据并校验口径。",
+              "standardQuestion": "帮我查询【日期】女装穿搭合格及优质图片供给量和覆盖率，并给出 SQL 口径。"
+            },
+            {
+              "id": "dress-up-image-check",
+              "mountKey": "commodity-dress-up-agent:dress-up-image-check",
+              "name": "穿搭图片状态诊断",
+              "description": "诊断图片从来源、挂品、打标、审核到 C 端分发的完整状态。",
+              "standardQuestion": "帮我诊断 media_pool_id=【media_pool_id】这张穿搭图片从挂品、打标、审核到 C 端分发的完整状态。"
+            }
+          ]
+        },
+        {
+          "id": "Security Service Desk",
+          "originalName": "安全服务专家",
+          "name": "安全服务专家",
+          "description": "处理得物安全相关咨询与安全服务台问题。",
+          "standardQuestion": "帮我处理这个安全问题：【安全问题】。",
+          "skills": []
+        },
+        {
+          "id": "ai-acl-agent",
+          "originalName": "权限服务专家",
+          "name": "权限服务专家",
+          "description": "处理权限相关查询、问题定位与使用咨询。",
+          "standardQuestion": "查询并定位这个权限问题：【权限问题】。",
+          "skills": []
+        }
+      ]
+    },
+    {
+      "id": "campaign",
+      "name": "营销",
+      "status": "coming-soon",
+      "agents": [
+        {
+          "id": "promo-activity-helper",
+          "originalName": "营销招商活动助手",
+          "name": "营销招商活动助手",
+          "description": "辅助查询SPU参与的活动信息、订单参与的活动信息、指定活动ID的活动详情。",
+          "standardQuestion": "1. 查询SPU 123 参与的活动信息\n2. 查询活动 123 的活动详情\n3. 查询订单号 123456 使用了哪些优惠活动？",
+          "skills": [
+            {
+              "id": "activity-robot-command",
+              "mountKey": "promo-activity-helper:activity-robot-command",
+              "name": "活动助手查询用法",
+              "description": "作为营销招商活动查询 MCP 使用的说明 SKILL，主要说明接口在不同场景下的入参用法",
+              "standardQuestion": "",
+              "availability": "coming-soon"
+            }
+          ]
+        },
+        {
+          "id": "promo-activity-qa",
+          "originalName": "营销招商活动QA助手",
+          "name": "营销招商活动QA助手",
+          "description": "辅助回答营销招商活动在招商过程中的常见问题答疑，支持平商联补券(共补券活动)、\n品牌首单礼金、平台大促活动（超级单品、大促招商基础池、一商折扣、混资加补券）",
+          "standardQuestion": "帮我解答一下: 【大促活动、平商共补券报名、首单礼金等营销活动问题】",
+          "skills": [
+            {
+              "id": "brand-new-user-gift-qa",
+              "mountKey": "promo-activity-qa:brand-new-user-gift-qa",
+              "name": "品牌首单礼金招商QA问题知识库",
+              "description": "前期以SKILL形式实现的“知识库”，后期迁移到交易知识库中",
+              "standardQuestion": "",
+              "availability": "coming-soon"
+            },
+            {
+              "id": "supply-coupon-qa",
+              "mountKey": "promo-activity-qa:supply-coupon-qa",
+              "name": "平商共补券招商QA问题知识库",
+              "description": "前期以SKILL形式实现的“知识库”，后期迁移到交易知识库中",
+              "standardQuestion": "",
+              "availability": "coming-soon"
+            },
+            {
+              "id": "platform-promotion-activity-qa",
+              "mountKey": "promo-activity-qa:platform-promotion-activity-qa",
+              "name": "平台大促活动招商QA问题知识库",
+              "description": "前期以SKILL形式实现的“知识库”，后期迁移到交易知识库中",
+              "standardQuestion": "",
+              "availability": "coming-soon"
+            }
+          ]
+        },
+        {
+          "id": "nezha-agent",
+          "originalName": "哪吒智能会场 Agent",
+          "name": "哪吒智能会场 Agent",
+          "description": "哪吒智能会场智能体是面向得物女娲搭建平台的 AI 智能会场引擎",
+          "standardQuestion": "帮我搭建一个会场，具体信息如下：\n1. 会场名称\n2. 活动名称或活动 ID\n3. 模板名称\n4. 组件类型\n5. 商品 ID\n6. 品牌名称\n7. 券活动 ID\n8. 捞月 ID 或其他组件 ID",
+          "skills": []
+        }
+      ]
+    },
+    {
+      "id": "project",
+      "name": "需求管理",
+      "status": "available",
+      "agents": [
+        {
+          "id": "ai-prd-score",
+          "originalName": "PRD撰写专家",
+          "name": "PRD撰写专家",
+          "description": "辅助完成需求背景、价值、功能详情、需求埋点等信息的识别和深挖，撰写PRD文档。",
+          "standardQuestion": "根据此MRD【MRD文档链接】为我生成一份PRD",
+          "skills": []
+        },
+        {
+          "id": "refunds-mrd-create",
+          "originalName": "MRD撰写专家",
+          "name": "MRD撰写专家",
+          "description": "辅助完成需求背景、价值、功能详情、协同方等内容的识别和深挖，撰写MRD文档。",
+          "standardQuestion": "请为我写一份MRD，我的需求如下：\n1.需求名称\n2.需求背景\n3.需求价值\n4.需求详情",
+          "skills": [
+            {
+              "id": "mrd-propose",
+              "mountKey": "refunds-mrd-create:mrd-propose",
+              "name": "MRD需求提案建档",
+              "description": "收集需求描述，在飞书创建需求子文件夹及 MRD 文档",
+              "standardQuestion": "我的需求如下，请为我新建一份MRD文档\n1.需求名称\n2.需求背景\n3.需求价值\n4.需求详情"
+            },
+            {
+              "id": "mrd-explore",
+              "mountKey": "refunds-mrd-create:mrd-explore",
+              "name": "MRD需求澄清",
+              "description": "展示当前MRD各维度评分，引导用户进行需求背景、价值、功能详情等内容的澄清",
+              "standardQuestion": "继续澄清需求【需求文档/文件链接】"
+            },
+            {
+              "id": "mrd-apply",
+              "mountKey": "refunds-mrd-create:mrd-apply",
+              "name": "MRD文档生成",
+              "description": "进行MRD质量评估并按公司模板一次性格式化输出正式MRD文档",
+              "standardQuestion": "生成正式版MRD"
+            }
+          ]
+        },
+        {
+          "id": "rdc_progress_report_a2a",
+          "originalName": "提需流程答疑专家",
+          "name": "提需流程答疑专家",
+          "description": "查询各版本信息&里程碑日期、提需资格、日常迭代/独立项目提需流程、RDC提报入口等提需信息",
+          "standardQuestion": "帮我查询【版本号】版本我的需求进展",
+          "skills": []
+        },
+        {
+          "id": "rdc_requirement_v2",
+          "originalName": "RDC提报专家",
+          "name": "RDC提报专家",
+          "description": "依据需求文档链接及任务提示词，自动在RDC系统提报MRD/PRD。",
+          "standardQuestion": "帮我在RDC上的【项目名称】【版本号】提报一个MRD/PRD【MRD/PRD文档链接】",
+          "skills": []
+        }
+      ]
+    },
+    {
+      "id": "product",
+      "name": "商品",
+      "status": "available",
+      "agents": [
+        {
+          "id": "commodity-operation-agent",
+          "originalName": "商品运营专家",
+          "name": "商品运营专家",
+          "description": "专注于低效query分析、新增趋势词分析、捞月集创建和查询、相似趋势词查询、电商机会词（趋势词）、全网机会商品、全网机会品牌、雷达搬运AI发品相关信息查询和数据分析。",
+          "standardQuestion": "分析管理二级类目【管二类目名称】新增趋势词",
+          "skills": []
+        },
+        {
+          "id": "detail-diagnosis-agent",
+          "originalName": "商详诊断智能体",
+          "name": "商详诊断智能体",
+          "description": "专注于得物平台商品详情页的内容质量诊断",
+          "standardQuestion": "帮我诊断一下商品【商品ID】的商品详情页，看看有哪些内容缺失或需要修改，并给出优化建议",
+          "skills": []
+        },
+        {
+          "id": "interpret-debug-agent",
+          "originalName": "商详解读调试助手",
+          "name": "商详解读调试助手",
+          "description": "专注于商详解读agent的调试，输出解读内容和prompt",
+          "standardQuestion": "请帮我生成一下【商品ID】的商详解读",
+          "skills": []
+        },
+        {
+          "id": "commodity-detail-structure",
+          "originalName": "商详头图结构化",
+          "name": "商详头图结构化",
+          "description": "头图结构化因子挖掘、数据分析与洞察、商品供给情况分析、缺供给商品获取",
+          "standardQuestion": "请对类目【三级类目名称或类目ID】进行头图结构化因子挖掘，分析范围为【全量商品/指定SPU清单】",
+          "skills": []
+        },
+        {
+          "id": "commodity-image-agent",
+          "originalName": "商品生图专家",
+          "name": "商品生图专家",
+          "description": "专注于商品图片设计与生成、模特图管理、帖子生成、图片审核",
+          "standardQuestion": "当前交易智能助手不支持该功能",
+          "skills": []
+        }
+      ]
+    },
+    {
+      "id": "acquisition",
+      "name": "招商",
+      "status": "coming-soon",
+      "agents": [
+        {
+          "id": "goofish-lead-pipeline",
+          "originalName": "闲鱼招商线索获取",
+          "name": "闲鱼招商线索获取",
+          "description": "闲鱼招商线索获取是一套基于浏览器插件 + DewuClaw 的自动化线索采集+触达工具，专为招商团队在闲鱼平台挖掘潜在商家而设计。",
+          "standardQuestion": "帮我找闲鱼上卖【商品类目/商品名称】的商家信息",
+          "skills": []
+        },
+        {
+          "id": "platform-spider-pipeline",
+          "originalName": "平台爬虫个人版",
+          "name": "平台爬虫个人版",
+          "description": "平台爬虫个人版是一套面向招商团队的轻量级商家信息采集工具，支持自动从淘宝平台抓取商家营业执照及联系方式，并将数据回写至飞书表格。",
+          "standardQuestion": "帮我找淘宝天猫有卖【商品类目/商品名称】的商家信息",
+          "skills": []
+        },
+        {
+          "id": "lead-im-outreach",
+          "originalName": "IM招商工具-tb",
+          "name": "IM招商工具-tb",
+          "description": "IM 招商工具支持对闲鱼和淘宝/天猫商家进行自动化触达，从飞书表格读取目标店铺列表和话术模板，逐一发送招商邀请消息。",
+          "standardQuestion": "给表格【商家信息表】中的商家发送招商邀请信息，招商信息模版见表格【招商信息模版】",
+          "skills": []
+        },
+        {
+          "id": "crm-leads-helper",
+          "originalName": "招商靶向池清洗",
+          "name": "招商靶向池清洗",
+          "description": "招商靶向池清洗是一套竞品选手数据整合与品牌价值评估工具，将抖音、天猫、淘宝、小红书等平台的商家排名数据与得物平台品牌/类目/GMV 数据交叉融合，筛选出高价值招商目标，形成精准靶向池。",
+          "standardQuestion": "靶向池清洗【全量靶向池清单表格链接】",
+          "skills": []
+        }
+      ]
+    }
+  ]
+}
